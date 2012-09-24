@@ -107,7 +107,8 @@ void setup() {
   resetVisibleFrame();
   resetIncomingFrame();
   
-  settingCommunication = COMM_I2C; //For this testing sketch let's use I2C as default communication type
+  //settingCommunication = COMM_I2C; //For this testing sketch let's use I2C as default communication type
+  settingCommunication = COMM_UART; //For this testing sketch let's use I2C as default communication type
 
 #ifdef DEBUG
   Serial.println("OpenSegment online! Yay!");
@@ -120,11 +121,11 @@ void loop() {
   delay(50);
   
   if(byteRequested == true) {
-//    Serial.println("Tx");
+    //Serial.println("Tx");
     byteRequested = false;
   }
   if(byteReceived == true) {
-//    Serial.println("Rx");
+    //Serial.println("Rx");
     byteReceived = false;
   }
 }
@@ -170,6 +171,7 @@ void checkFrame(void) {
       return;
     }
     else if(incomingFrame[x] == CMD_NEWLINE || incomingFrame[x] == CMD_RETURN) {
+      resetIncomingFrame();
       frameSpot = 0; //Do nothing but reset the frame spot
       return;
     }
@@ -182,6 +184,8 @@ void checkFrame(void) {
         Serial.write(visibleFrame[x]);
       
       Serial.write('\n'); //New line termination
+
+      byteRequested = true;
     }
     else if(settingCommunication == COMM_I2C) {
       thingToSend = DATA_VISIBLE; //The parent is requesting that we push the visible frame
@@ -199,6 +203,8 @@ void checkFrame(void) {
       Serial.write(settingBrightness);
       Serial.write(settingCommunication);
       Serial.write('\n'); //New line termination
+
+      byteRequested = true;
     }
     else if(settingCommunication == COMM_I2C) {
       thingToSend = DATA_SETTINGS; //The parent is requesting that we push the unit's settings
@@ -286,10 +292,17 @@ void serialEvent() {
   if(settingCommunication != COMM_UART) {
     settingCommunication = COMM_UART;
     frameSpot = 0; //Reset our spot within the frame just to be safe
+    Serial.println("$");
   }
+  char tempFrame[10];
 
+  int x = 0;
   while(Serial.available())
-    recordToFrame(Serial.read());
+    tempFrame[x++] = Serial.read();
+  
+  //Once we have a pause, move the frame over
+  for(int j = 0; j < x ; j++)
+    recordToFrame(tempFrame[j]);
 
   byteReceived = true;
 }

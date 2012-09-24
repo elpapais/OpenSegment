@@ -39,7 +39,7 @@ char tempFrame[DISPLAY_SIZE]; //This assumes we are attached to a 4 digit displa
 
 char tempString[100]; //Used for the sprintf based debug statements
 
-int cycles = 0;
+int cycles = 3;
 
 void setup() {
 
@@ -47,6 +47,9 @@ void setup() {
   Serial.println("OpenSegment Example Code");
   
   mySerial.begin(9600); //Talk to the OpenSegment at 9600 bps
+  mySerial.print("0"); //These two lines help get the soft serial running correctly
+  delay(10); //These two lines help get the soft serial running correctly
+  //mySerial.print("0000");
 }
 
 void loop() {
@@ -60,11 +63,11 @@ void loop() {
   serialRequestData(); //What is the display currently displaying?
   delay(500);
 
-  //serialSetBrightness(10);
-  //delay(500);
+  serialSetBrightness(10);
+  delay(500);
 
-  //serialRequestSettings(); //What are the current settings?
-  //delay(500);
+  serialRequestSettings(); //What are the current settings?
+  delay(500);
 }
 
 //Sends a four digit value (cycles) to the display
@@ -103,10 +106,8 @@ void serialRequestData(void) {
 
   mySerial.write(0x5C); //Sending 0x5C will give us visible data. 0x5E will give us the unit's settings.
 
-  Serial.print('.'); //For debug to tell if we freeze on the following line
-
-  //while(mySerial.available() < 4) ; //Wait for the characters to show up
-  delay(10); //Wait for the characters to show up
+  while(mySerial.available() < 4) ; //Wait for the characters to show up
+  //delay(10); //Wait for the characters to show up
 
   //Collect the incoming 4 bytes
   for(int x = 0 ; x < 4 ; x++)
@@ -120,6 +121,16 @@ void serialRequestData(void) {
   Serial.println();
 }
 
+//Sets the brightness to 10 (pretty bright, 0 is brightest) on OpenSegment
+void serialSetBrightness(byte brightLevel) {
+
+  mySerial.write('\n'); //This forces the receive frame to reset allowing for commands to be read correctly
+  
+  mySerial.write(0x7A); //Sending 0x7A will adjust the brightness level
+  //mySerial.write(10); //Do NOT set the brightness to 10. This is the same character as \n and confuses the system
+  mySerial.write(5); //Do NOT set the brightness to 10. This is the same character as \n and confuses the system
+}
+
 //Gets the current settings from OpenSegment
 void serialRequestSettings(void) {
   
@@ -130,8 +141,6 @@ void serialRequestSettings(void) {
   while(mySerial.available()) mySerial.read(); //Get rid of anything setting in the incoming buffer
 
   mySerial.write(0x5E); //Sending 0x5C will give us visible data. 0x5E will give us the unit's settings.
-
-  Serial.print('.'); //For debug to tell if we freeze on the following line
 
   while(mySerial.available() < 3) ; //Wait for the characters to show up
   //delay(10); //Wait for the characters to show up
@@ -148,12 +157,4 @@ void serialRequestSettings(void) {
   Serial.println();
 }
 
-//Sets the brightness to 10 (pretty bright, 0 is brightest) on OpenSegment
-void serialSetBrightness(byte brightLevel) {
-
-  mySerial.write('\n'); //This forces the receive frame to reset allowing for commands to be read correctly
-  
-  mySerial.write(0x7A); //Sending 0x7A will adjust the brightness level
-  mySerial.write(10);
-}
 
