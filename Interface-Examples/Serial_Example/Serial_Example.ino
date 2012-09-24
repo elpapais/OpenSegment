@@ -63,7 +63,7 @@ void loop() {
   serialRequestData(); //What is the display currently displaying?
   delay(500);
 
-  serialSetBrightness(10);
+  serialSetBrightness(5);
   delay(500);
 
   serialRequestSettings(); //What are the current settings?
@@ -121,14 +121,12 @@ void serialRequestData(void) {
   Serial.println();
 }
 
-//Sets the brightness to 10 (pretty bright, 0 is brightest) on OpenSegment
+//Sets the brightness (100 is pretty bright, 0 is brightest)
 void serialSetBrightness(byte brightLevel) {
 
   mySerial.write('\n'); //This forces the receive frame to reset allowing for commands to be read correctly
-  
   mySerial.write(0x7A); //Sending 0x7A will adjust the brightness level
-  //mySerial.write(10); //Do NOT set the brightness to 10. This is the same character as \n and confuses the system
-  mySerial.write(5); //Do NOT set the brightness to 10. This is the same character as \n and confuses the system
+  mySerial.write(brightLevel); //Set brightness
 }
 
 //Gets the current settings from OpenSegment

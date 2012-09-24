@@ -171,9 +171,12 @@ void checkFrame(void) {
       return;
     }
     else if(incomingFrame[x] == CMD_NEWLINE || incomingFrame[x] == CMD_RETURN) {
-      resetIncomingFrame();
-      frameSpot = 0; //Do nothing but reset the frame spot
-      return;
+      //You could potentially have brightness control in inFrame[0] and brightness setting of 10 (10 = \n)
+      if(incomingFrame[0] != CMD_BRIGHTNESS_CONTROL) { //This is a super weird case where we avoid a false reset
+        resetIncomingFrame();
+        frameSpot = 0; //Do nothing but reset the frame spot
+        return;
+      }
     }
   }
 
