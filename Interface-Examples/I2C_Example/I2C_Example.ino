@@ -8,7 +8,13 @@
  OpenSegment is an open source seven segment display. 
 
  This is the test code we run on an Arduino to make sure the display is working. It also serves as an example
- of how to control OpenSegment using different protocols
+ of how to control OpenSegment using different protocols.
+ 
+ To get this code to work, attached an OpenSegment to an Arduino Uno using the following pins:
+ A5 to SCL
+ A4 to SDA
+ VIN to PWR
+ GND to GND
  
  ToDo:
  I2C test sending - done 9/19/12

@@ -18,12 +18,6 @@
 #include <Wire.h>
 #include <EEPROM.h>
 
-//The OpenSegment I2C address can be anything really (but we should probably be following some convention)
-//Remember, this is only 7 bits. The 8th bit is the read/write flag
-//Also, the lest two bits are controlled by the solder jumpers on the board
-//#define MY_I2C_ADDRESS 0b00111100 //If solder jumpers are open, this is 0x3C
-#define MY_I2C_ADDRESS 0x3C //If solder jumpers are open, this is 0x3C
-
 //This code was written for a 4 digit display but should work for other sizes as well
 #define DISPLAYSIZE 4
 
@@ -34,6 +28,7 @@
 //Internal EEPROM locations for the user settings
 #define LOCATION_BAUD_SETTING		0x01
 #define LOCATION_BRIGHTNESS_SETTING	0x02
+#define LOCATION_ADDRESS_SETTING	0x03
 
 #define BAUD_2400	0
 #define BAUD_4800	1
@@ -49,16 +44,17 @@
 #define MODE_COUNTER	3
 
 #define CMD_RESET_DISPLAY	0x76 //'v'
-#define CMD_BAUD_CHANGE		0x7F //DEL
+#define CMD_BAUD_CONTROL	0x7F //DEL
 #define CMD_BRIGHTNESS_CONTROL	0x7A //'z'
 #define CMD_DPOINT_CONTROL	0x77 //'w'
 #define CMD_DIGIT1_CONTROL	0x7B //'{'
 #define CMD_DIGIT2_CONTROL	0x7C //'|'
 #define CMD_DIGIT3_CONTROL	0x7D //'}'
 #define CMD_DIGIT4_CONTROL	0x7E //'~'
-
-#define CMD_REQ_VISIBLE		0x70 //
-#define CMD_REQ_SETTINGS	0x71 //
+#define CMD_REQ_VISIBLE		0x5C //'\'
+#define CMD_REQ_SETTINGS	0x5E //'^'
+#define CMD_RETURN		0x0D //'\r' This is carrage return \r
+#define CMD_NEWLINE		0x0A //'\n' This is new line \n
 
 #define DATA_VISIBLE		0
 #define DATA_SETTINGS		1
@@ -80,6 +76,7 @@ byte visibleFrame[DISPLAYSIZE];
 byte settingUartSpeed;
 byte settingBrightness;
 byte settingCommunication; //Controls unit's communcation type (I2C, Serial, SPI, counter)
+byte settingAddress; //This is the I2C address for this device, default is 0x3C.
 byte thingToSend; //Controls what to respond with, either visible data or the unit's settings
 
 boolean byteReceived = false;
@@ -87,21 +84,28 @@ boolean byteRequested = false;
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 void setup() {
+  //check_emergency_reset(); //Look to see if the RX pin is being pulled low
+
   readSystemSettings(); //Load all the system settings from EEPROM
 
-  Wire.begin(MY_I2C_ADDRESS); //Join the bus and respond to calls addressed to 0x3C
+  Wire.begin(settingAddress); //Join the bus and respond to calls addressed to 0x3C
   Wire.onReceive(receiveEvent); //receiveEvent gets called when data is sent to the display
   Wire.onRequest(requestEvent); //requestEvent gets called when data is requested from the display
 
-  Serial.begin(115200);
+  //Setup UART
+  if(settingUartSpeed == BAUD_2400) Serial.begin(2400);
+  if(settingUartSpeed == BAUD_4800) Serial.begin(4800);
+  if(settingUartSpeed == BAUD_9600) Serial.begin(9600);
+  if(settingUartSpeed == BAUD_19200) Serial.begin(19200);
+  if(settingUartSpeed == BAUD_38400) Serial.begin(38400);
+  if(settingUartSpeed == BAUD_57600) Serial.begin(57600);
+  if(settingUartSpeed == BAUD_115200) Serial.begin(115200);
+
+  Serial.begin(9600);
 
   //Clean out the frames
-  for(int x = 0 ; x < DISPLAYSIZE ; x++) {
-    incomingFrame[x] = 'x';
-    visibleFrame[x] = 'x';
-  }
-
-  frameSpot = 0; //Reset the frame spot
+  resetVisibleFrame();
+  resetIncomingFrame();
   
   settingCommunication = COMM_I2C; //For this testing sketch let's use I2C as default communication type
 
@@ -116,11 +120,11 @@ void loop() {
   delay(50);
   
   if(byteRequested == true) {
-    Serial.println("Tx");
+//    Serial.println("Tx");
     byteRequested = false;
   }
   if(byteReceived == true) {
-    Serial.println("Rx");
+//    Serial.println("Rx");
     byteReceived = false;
   }
 }
@@ -128,12 +132,14 @@ void loop() {
 //This displays the current digits and letters on the seven segment display
 void displayFrame(void) {
 
+  /*
   Serial.print(" Visible frame: ");
   for(int x = 0 ; x < DISPLAYSIZE ; x++) {
     sprintf(tempString, "0x%02X ", visibleFrame[x]);
     Serial.print(tempString);
   }
   Serial.println();
+  */
 
 }
 
@@ -145,7 +151,7 @@ void recordToFrame(byte theNewThang) {
 
   if(frameSpot >= DISPLAYSIZE) {
     frameSpot = 0; //Wrap the frame spot
-
+    
     //If we've received a full display of data, record it to the visible frame
     for(int x = 0 ; x < DISPLAYSIZE ; x++)
       visibleFrame[x] = incomingFrame[x];
@@ -158,22 +164,47 @@ void checkFrame(void) {
   //Look for reset command
   for(int x = 0 ; x < DISPLAYSIZE ; x++) {
     if(incomingFrame[x] == CMD_RESET_DISPLAY) {
-      resetFrame();
+      resetIncomingFrame(); //Clears the incoming frame
+      resetVisibleFrame(); //Clears the display
       frameSpot = 0;
+      return;
+    }
+    else if(incomingFrame[x] == CMD_NEWLINE || incomingFrame[x] == CMD_RETURN) {
+      frameSpot = 0; //Do nothing but reset the frame spot
       return;
     }
   }
 
   //Data request for the visible frame
   if(incomingFrame[0] == CMD_REQ_VISIBLE) {
-    thingToSend = DATA_VISIBLE; //The parent is requesting that we push the visible frame
+    if(settingCommunication == COMM_UART) {
+      for(int x = 0 ; x < DISPLAYSIZE ; x++)
+        Serial.write(visibleFrame[x]);
+      
+      Serial.write('\n'); //New line termination
+    }
+    else if(settingCommunication == COMM_I2C) {
+      thingToSend = DATA_VISIBLE; //The parent is requesting that we push the visible frame
+      //The actual values are sent from the requestEvent() function
+    }
+
     frameSpot = 0;
     return;
   }
 
   //Data request for the unit settings
   if(incomingFrame[0] == CMD_REQ_SETTINGS) {
-    thingToSend = DATA_SETTINGS; //The parent is requesting that we push the unit's settings
+    if(settingCommunication == COMM_UART) {
+      Serial.write(settingUartSpeed);
+      Serial.write(settingBrightness);
+      Serial.write(settingCommunication);
+      Serial.write('\n'); //New line termination
+    }
+    else if(settingCommunication == COMM_I2C) {
+      thingToSend = DATA_SETTINGS; //The parent is requesting that we push the unit's settings
+      //The actual values are sent from the requestEvent() function
+    }
+
     frameSpot = 0;
     return;
   }
@@ -182,7 +213,7 @@ void checkFrame(void) {
   if(frameSpot < 2) return;
 
   //Baud rate change
-  if(incomingFrame[0] == CMD_BAUD_CHANGE) {
+  if(incomingFrame[0] == CMD_BAUD_CONTROL) {
     switch(incomingFrame[1]) {
     case BAUD_2400:
       settingUartSpeed = BAUD_2400;
@@ -215,22 +246,66 @@ void checkFrame(void) {
     frameSpot = 0; //Reset the incoming frame
     return;
   }
+
+  //Brightness change
+  if(incomingFrame[0] == CMD_BRIGHTNESS_CONTROL) {
+    settingBrightness = incomingFrame[1];
+    if(settingBrightness == 255) settingBrightness = 0; //Sanity check
+
+    //Record this new brightness to EEPROM
+    EEPROM.write(LOCATION_BRIGHTNESS_SETTING, settingBrightness);
+    
+    frameSpot = 0; //Reset the incoming frame
+    return;
+  }
+}
+
+//Reset all data in the data/incoming frame to 'x' (nothing)
+//Reset the spot variable
+void resetIncomingFrame(void) {
+  for(int x = 0 ; x < DISPLAYSIZE ; x++)
+    incomingFrame[x] = 'x';
+
+  frameSpot = 0;
 }
 
 //Reset all data in the visible frame to 'x' (nothing)
 //Reset the spot variable
-void resetFrame(void) {
+void resetVisibleFrame(void) {
   for(int x = 0 ; x < DISPLAYSIZE ; x++)
     visibleFrame[x] = 'x';
 
   frameSpot = 0;
 }
 
+//Serial Specific functions
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void serialEvent() {
+
+  //Check to see if the user is changing communication methods
+  if(settingCommunication != COMM_UART) {
+    settingCommunication = COMM_UART;
+    frameSpot = 0; //Reset our spot within the frame just to be safe
+  }
+
+  while(Serial.available())
+    recordToFrame(Serial.read());
+
+  byteReceived = true;
+}
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
 //I2C Specific functions
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 //receiveEvent gets called when data is sent to the display
 void receiveEvent(int howMany) {
+
+  //Check to see if the user is changing communication methods
+  if(settingCommunication != COMM_I2C) {
+    settingCommunication = COMM_I2C;
+    frameSpot = 0; //Reset our spot within the frame just to be safe
+  }
 
   while(Wire.available())
     recordToFrame(Wire.read());
@@ -261,6 +336,7 @@ void requestEvent(void) {
   byteRequested = true;
 }
 
+
 //End I2C Specific functions
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -285,6 +361,18 @@ void readSystemSettings(void) {
     settingBrightness = 0; //By default, unit will be brightest
     EEPROM.write(LOCATION_BRIGHTNESS_SETTING, settingBrightness);
   }
+
+  //Look up the address for this device
+  //The OpenSegment I2C address can be anything really (but we should probably be following some convention)
+  //Remember, this is only 7 bits. The 8th bit is the read/write flag
+  //Also, the lest two bits are controlled by the solder jumpers on the board
+  //Default is 0x3C
+  settingAddress = EEPROM.read(LOCATION_ADDRESS_SETTING);
+  if(settingAddress == 255) {
+    settingAddress = 0x3C; //By default, unit's address is 0x3C
+    EEPROM.write(LOCATION_ADDRESS_SETTING, settingAddress);
+  }
+
 }
 
 //End internal system functions
