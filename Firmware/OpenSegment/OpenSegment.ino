@@ -64,6 +64,28 @@
 #define COMM_I2C		2
 #define COMM_COUNTER		3
 
+//For digits with NPN control, off is digital low
+#define DIG_OFF			LOW
+#define DIG_ON			HIGH
+
+//For segments with PNP control, off is digital high
+#define SEG_OFF			HIGH
+#define SEG_ON			LOW
+
+//Define all the hardware connections
+#define SEGA			14
+#define SEGB			2
+#define SEGC			8
+#define SEGD			6
+#define SEGE			7
+#define SEGF			15
+#define SEGG			4
+#define SEGDP			5
+
+#define DIG1			9
+#define DIG2			16
+#define DIG3			17
+#define DIG4			3
 
 //Global variables
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -84,7 +106,35 @@ boolean byteRequested = false;
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 void setup() {
-  //check_emergency_reset(); //Look to see if the RX pin is being pulled low
+
+  //Setup all the digit control
+  digitalWrite(DIG1, DIGIT_OFF);
+  digitalWrite(DIG2, DIGIT_OFF);
+  digitalWrite(DIG3, DIGIT_OFF);
+  digitalWrite(DIG4, DIGIT_OFF);
+  pinMode(DIG1, OUTPUT);
+  pinMode(DIG2, OUTPUT);
+  pinMode(DIG3, OUTPUT);
+  pinMode(DIG4, OUTPUT);
+
+  digitalWrite(SEGA, SEG_OFF);
+  digitalWrite(SEGB, SEG_OFF);
+  digitalWrite(SEGC, SEG_OFF);
+  digitalWrite(SEGD, SEG_OFF);
+  digitalWrite(SEGE, SEG_OFF);
+  digitalWrite(SEGF, SEG_OFF);
+  digitalWrite(SEGG, SEG_OFF);
+  digitalWrite(SEGDP, SEG_OFF);
+  pinMode(SEGA, OUTPUT);
+  pinMode(SEGB, OUTPUT);
+  pinMode(SEGC, OUTPUT);
+  pinMode(SEGD, OUTPUT);
+  pinMode(SEGE, OUTPUT);
+  pinMode(SEGF, OUTPUT);
+  pinMode(SEGG, OUTPUT);
+  pinMode(SEGDP, OUTPUT);
+  
+  checkEmergencyReset(); //Look to see if the RX pin is being pulled low
 
   readSystemSettings(); //Load all the system settings from EEPROM
 
@@ -358,6 +408,61 @@ void requestEvent(void) {
 
 //These are internal system functions
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+//Check to see if we need an emergency reset
+//Scan the RX pin for 2 seconds
+//If it's low the entire time, then resort to factory defaults
+void checkEmergencyReset(void) {
+  pinMode(0, INPUT); //Turn the RX pin into an input
+  digitalWrite(0, HIGH); //Push a 1 onto RX pin to enable internal pull-up
+
+  //Quick pin check
+  if(digitalRead(0) == HIGH) return;
+
+  //Wait 2 seconds, blinking LEDs while we wait
+  digitalWrite(SEGDP, SEG_ON); //Turn on the decimal point
+
+  digitalWrite(DIG1, DIG_ON); //Turn on the digits
+  digitalWrite(DIG2, DIG_ON); //Turn on the digits
+  digitalWrite(DIG3, DIG_ON); //Turn on the digits
+  digitalWrite(DIG4, DIG_ON); //Turn on the digits
+  
+  for(byte i = 0 ; i < 40 ; i++) {
+    delay(25);
+    digitalWrite(SEGDP, HIGH); //Turn ooff the decimal point
+
+    if(digitalRead(0) == HIGH) return; //Check to see if RX is not low anymore
+
+    delay(25);
+    STAT2_PORT ^= (1<<STAT2); //Blink the stat LEDs
+
+    if(digitalRead(0) == HIGH) return; //Check to see if RX is not low anymore
+  }		
+
+  //If we make it here, then RX pin stayed low the whole time
+  set_default_settings(); //Reset baud, escape characters, escape number, system mode
+
+  //Try to setup the SD card so we can record these new settings
+  if (!card.init()) error("card.init"); // initialize the SD card
+  if (!volume.init(&card)) error("volume.init"); // initialize a FAT volume
+  if (!currentDirectory.openRoot(&volume)) error("openRoot"); // open the root directory
+
+  record_config_file(); //Record new config settings
+
+  pinMode(statled1, OUTPUT);
+  pinMode(statled2, OUTPUT);
+  digitalWrite(statled1, HIGH);
+  digitalWrite(statled2, HIGH);
+
+  //Now sit in forever loop indicating system is now at 9600bps
+  while(1)
+  {
+    delay(500);
+    STAT1_PORT ^= (1<<STAT1); //Blink the stat LEDs
+    STAT2_PORT ^= (1<<STAT2); //Blink the stat LEDs
+  }
+}
+
 
 //Reads the current system settings from EEPROM
 //If anything looks weird, reset setting to default value
