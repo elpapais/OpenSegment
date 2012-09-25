@@ -7,8 +7,7 @@
 
  OpenSegment is an open source seven segment display. 
 
- This is the test code we run on an Arduino to make sure the display is working. It also serves as an example
- of how to control OpenSegment using different protocols.
+ This is example code that shows how to control OpenSegment via serial or software (bit banged) serial.
  
  To get this code to work, attached an OpenSegment to an Arduino Uno using the following pins:
  Pin 7 on Uno (software serial RX) to TX on OpenSegment
@@ -16,22 +15,11 @@
  VIN to PWR
  GND to GND
  
- ToDo:
- I2C test sending - done 9/19/12
- I2C test receving 
- I2C test sending to multiple displays
- Serial testing
- SPI test sending
- SPI test sending to multiple displays
- 
- Test UART change
- Test display data request
- Test unit setting request
 */
 
 #include <SoftwareSerial.h>
 
-SoftwareSerial mySerial(7, 8); //RX, TX
+SoftwareSerial mySerial(7, 8); //RX pin, TX pin
 
 #define DISPLAY_SIZE 4
 
@@ -39,17 +27,14 @@ char tempFrame[DISPLAY_SIZE]; //This assumes we are attached to a 4 digit displa
 
 char tempString[100]; //Used for the sprintf based debug statements
 
-int cycles = 3;
+int cycles = 998;
 
 void setup() {
 
   Serial.begin(9600);
   Serial.println("OpenSegment Example Code");
-  
+
   mySerial.begin(9600); //Talk to the OpenSegment at 9600 bps
-  mySerial.print("0"); //These two lines help get the soft serial running correctly
-  delay(10); //These two lines help get the soft serial running correctly
-  //mySerial.print("0000");
 }
 
 void loop() {
@@ -74,25 +59,25 @@ void loop() {
 void serialTestSend(int tempCycles) {
   mySerial.write('\n'); //This forces the cursor to return to the beginning of the display
 
-  if(tempCycles / 1000 > 0)
-    mySerial.print(tempCycles / 1000);
-  else
-    mySerial.print(' '); //This removes any leading zeros
-  tempCycles %= 1000;
+  int numToPrint[4];
+  int spot;
 
-  if(tempCycles / 100 > 0)
-    mySerial.print(tempCycles / 100);
-  else
-    mySerial.print(' '); //This removes any leading zeros
-  tempCycles %= 100;
+  //Here we split up and load the array with the four decimal numbers
+  for(spot = 0 ; spot < 4 ; spot++) {
+    numToPrint[3 - spot] = tempCycles % 10; // = 2
+    tempCycles /= 10; // = 145
+  }
 
-  if(tempCycles / 10 > 0)
-    mySerial.print(tempCycles / 10);
-  else
-    mySerial.print(' '); //This removes any leading zeros
-  tempCycles %= 10;
+  //Transmit either blanks or leading zeros to the display
+  //We run until spot == 3 so that we print a zero if tempCycles is 0.
+  for(spot = 0 ; numToPrint[spot] == 0 && spot < 3 ; spot++) { //Spin through the leading zeros
+    mySerial.print(' '); //Use this if you want no leading zeros
+    //mySerial.print('0'); //Use this if you want leading zeros
+  }
 
-  mySerial.print(tempCycles);
+  //Print the rest of the numbers
+  for( ; spot < 4 ; spot++)
+    mySerial.print(numToPrint[spot]);
 }
 
 //Gets the current settings from OpenSegment
