@@ -28,7 +28,7 @@
 //Internal EEPROM locations for the user settings
 #define LOCATION_BAUD_SETTING		0x01
 #define LOCATION_BRIGHTNESS_SETTING	0x02
-#define LOCATION_ADDRESS_SETTING	0x03
+#define LOCATION_I2CADDRESS_SETTING	0x03
 
 #define BAUD_2400	0
 #define BAUD_4800	1
@@ -87,6 +87,11 @@
 #define DIG3			17
 #define DIG4			3
 
+#define SPI_CS			10
+#define SPI_MOSI		11
+#define SPI_MISO		12
+#define SPI_SCK			13
+
 //Global variables
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 char tempString[100]; //Used for the sprintf based debug statements
@@ -98,20 +103,40 @@ byte visibleFrame[DISPLAYSIZE];
 byte settingUartSpeed;
 byte settingBrightness;
 byte settingCommunication; //Controls unit's communcation type (I2C, Serial, SPI, counter)
-byte settingAddress; //This is the I2C address for this device, default is 0x3C.
+byte settingI2CAddress; //This is the I2C address for this device, default is 0x3C.
 byte thingToSend; //Controls what to respond with, either visible data or the unit's settings
 
-boolean byteReceived = false;
-boolean byteRequested = false;
+boolean UARTbyteReceived = false; //These variables track when the UART interrupt is called
+boolean UARTbyteRequested = false;
+
+boolean I2CbyteReceived = false; //These variables track when the I2C interrupt is called
+boolean I2CbyteRequested = false;
+
+/*char SPIinBuffer[16]; //We should only need about 10 spots
+ byte SPIin_head = 0;
+ byte SPIin_tail = 0;
+ char SPIoutBuffer[16]; //We should only need about 10 spots
+ byte SPIout_head = 0;
+ byte SPIout_tail = 0;*/
+
+//byte SPIoutgoing_spot = 0;
+byte SPIhead = 0;
+byte SPItail = 0;
+byte SPIbuffer[16]; //We should only need about 10 spots
+boolean SPIframeReceived = false;
+
+//byte SPIcommand = 0; //This is the first byte that the master sends us
+//boolean SPIbyteReceived = false; //This variable tracks when the SPI interrupt is called
+int myCounter;
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 void setup() {
 
   //Setup all the digit control
-  digitalWrite(DIG1, DIGIT_OFF);
-  digitalWrite(DIG2, DIGIT_OFF);
-  digitalWrite(DIG3, DIGIT_OFF);
-  digitalWrite(DIG4, DIGIT_OFF);
+  digitalWrite(DIG1, DIG_OFF);
+  digitalWrite(DIG2, DIG_OFF);
+  digitalWrite(DIG3, DIG_OFF);
+  digitalWrite(DIG4, DIG_OFF);
   pinMode(DIG1, OUTPUT);
   pinMode(DIG2, OUTPUT);
   pinMode(DIG3, OUTPUT);
@@ -133,14 +158,25 @@ void setup() {
   pinMode(SEGF, OUTPUT);
   pinMode(SEGG, OUTPUT);
   pinMode(SEGDP, OUTPUT);
-  
+
   checkEmergencyReset(); //Look to see if the RX pin is being pulled low
 
   readSystemSettings(); //Load all the system settings from EEPROM
+//  settingCommunication = COMM_UART; //On power up unit assumes UART communication
+  settingCommunication = COMM_SPI;
 
-  Wire.begin(settingAddress); //Join the bus and respond to calls addressed to 0x3C
-  Wire.onReceive(receiveEvent); //receiveEvent gets called when data is sent to the display
-  Wire.onRequest(requestEvent); //requestEvent gets called when data is requested from the display
+  //Setup I2C
+  Wire.begin(settingI2CAddress); //Join the bus and respond to calls addressed to 0x3C
+  Wire.onReceive(I2CreceiveEvent); //receiveEvent gets called when data is sent to the display
+  Wire.onRequest(I2CrequestEvent); //requestEvent gets called when data is requested from the display
+
+  //Setup SPI - remember, we can't use the built-in library for slave mode
+  pinMode(SPI_CS, INPUT);
+  pinMode(SPI_MISO, OUTPUT);
+  pinMode(SPI_MOSI, INPUT);
+  pinMode(SPI_SCK, INPUT);
+  SPCR |= _BV(SPE); //Turn on SPI in slave mode
+  SPCR |= _BV(SPIE); //Turn on SPI interrupts
 
   //Setup UART
   if(settingUartSpeed == BAUD_2400) Serial.begin(2400);
@@ -151,33 +187,64 @@ void setup() {
   if(settingUartSpeed == BAUD_57600) Serial.begin(57600);
   if(settingUartSpeed == BAUD_115200) Serial.begin(115200);
 
-  Serial.begin(9600);
-
   //Clean out the frames
   resetVisibleFrame();
   resetIncomingFrame();
-  
-  //settingCommunication = COMM_I2C; //For this testing sketch let's use I2C as default communication type
-  settingCommunication = COMM_UART; //For this testing sketch let's use I2C as default communication type
 
 #ifdef DEBUG
   Serial.println("OpenSegment online! Yay!");
 #endif  
 
+  myCounter = 0;
 }
 
 void loop() {
-  displayFrame(); //Illuminate the current frame
-  delay(50);
-  
-  if(byteRequested == true) {
-    //Serial.println("Tx");
-    byteRequested = false;
+  int myCounter;
+  //displayFrame(); //Illuminate the current frame
+  //delay(50);
+
+  if(settingCommunication == COMM_I2C) { //If we are communicating via I2C
+    if(I2CbyteRequested == true) {
+      //Serial.println("Tx");
+      I2CbyteRequested = false;
+    }
+    if(I2CbyteReceived == true) {
+      //Serial.println("Rx");
+      I2CbyteReceived = false;
+    }
   }
-  if(byteReceived == true) {
-    //Serial.println("Rx");
-    byteReceived = false;
+
+  if(settingCommunication == COMM_SPI) { //If we are communicating via SPI
+    //if(digitalRead(SPI_CS) == HIGH) SPIspot = 0; //If SPI is not active, reset our spot in the frame
+
+    //if(SPIframeReceived == true) { //Record the SPI frame
+      //SPIspot = 0;
+
+      while(SPItail != SPIhead) {
+        recordToFrame(SPIbuffer[SPItail++]); //Push this byte of the buffer to the incomingFrame
+        SPItail %= 16; //Wrap the tail if need be
+      }
+
+      //SPIframeReceived = false;
+
+      //For debugging
+      //for(int x = 0 ; x < DISPLAYSIZE ; x++)
+      //  Serial.write(SPIbuffer[x]);
+    //}
   }
+}
+
+//The Arduino SPI library doesn't support slave mode so we need our own ISR (interrupt service routine)
+//Originally from http://www.gammon.com.au/forum/?id=10892
+//SPI interrupt routine
+ISR (SPI_STC_vect) {
+  SPIbuffer[SPIhead++] = SPDR; //Load the incoming character into the SPI buffer
+  SPIhead %= 16;
+
+  /*if(SPIspot >= DISPLAYSIZE){
+    SPIframeReceived = true; //Let the main loop know we've got a complete frame
+    SPIspot = 0; //Wrap the SPIspot just in case
+  }*/
 }
 
 //This displays the current digits and letters on the seven segment display
@@ -185,12 +252,12 @@ void displayFrame(void) {
 
   /*
   Serial.print(" Visible frame: ");
-  for(int x = 0 ; x < DISPLAYSIZE ; x++) {
-    sprintf(tempString, "0x%02X ", visibleFrame[x]);
-    Serial.print(tempString);
-  }
-  Serial.println();
-  */
+   for(int x = 0 ; x < DISPLAYSIZE ; x++) {
+   sprintf(tempString, "0x%02X ", visibleFrame[x]);
+   Serial.print(tempString);
+   }
+   Serial.println();
+   */
 
 }
 
@@ -202,10 +269,14 @@ void recordToFrame(byte theNewThang) {
 
   if(frameSpot >= DISPLAYSIZE) {
     frameSpot = 0; //Wrap the frame spot
-    
+
     //If we've received a full display of data, record it to the visible frame
     for(int x = 0 ; x < DISPLAYSIZE ; x++)
       visibleFrame[x] = incomingFrame[x];
+
+      //For debugging
+      for(int x = 0 ; x < DISPLAYSIZE ; x++)
+        Serial.write(visibleFrame[x]);
   }
 }
 
@@ -235,10 +306,10 @@ void checkFrame(void) {
     if(settingCommunication == COMM_UART) {
       for(int x = 0 ; x < DISPLAYSIZE ; x++)
         Serial.write(visibleFrame[x]);
-      
+
       Serial.write('\n'); //New line termination
 
-      byteRequested = true;
+      UARTbyteRequested = true;
     }
     else if(settingCommunication == COMM_I2C) {
       thingToSend = DATA_VISIBLE; //The parent is requesting that we push the visible frame
@@ -257,7 +328,7 @@ void checkFrame(void) {
       Serial.write(settingCommunication);
       Serial.write('\n'); //New line termination
 
-      byteRequested = true;
+      UARTbyteRequested = true;
     }
     else if(settingCommunication == COMM_I2C) {
       thingToSend = DATA_SETTINGS; //The parent is requesting that we push the unit's settings
@@ -301,7 +372,7 @@ void checkFrame(void) {
 
     //Record this new baudrate to EEPROM
     EEPROM.write(LOCATION_BAUD_SETTING, settingUartSpeed);
-    
+
     frameSpot = 0; //Reset the incoming frame
     return;
   }
@@ -313,7 +384,7 @@ void checkFrame(void) {
 
     //Record this new brightness to EEPROM
     EEPROM.write(LOCATION_BRIGHTNESS_SETTING, settingBrightness);
-    
+
     frameSpot = 0; //Reset the incoming frame
     return;
   }
@@ -345,27 +416,32 @@ void serialEvent() {
   if(settingCommunication != COMM_UART) {
     settingCommunication = COMM_UART;
     frameSpot = 0; //Reset our spot within the frame just to be safe
-    Serial.println("$");
   }
   char tempFrame[10];
 
   int x = 0;
   while(Serial.available())
     tempFrame[x++] = Serial.read();
-  
+
   //Once we have a pause, move the frame over
   for(int j = 0; j < x ; j++)
     recordToFrame(tempFrame[j]);
 
-  byteReceived = true;
+  UARTbyteReceived = true;
 }
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+//SPI Specific functions
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
 
 //I2C Specific functions
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 //receiveEvent gets called when data is sent to the display
-void receiveEvent(int howMany) {
+void I2CreceiveEvent(int howMany) {
 
   //Check to see if the user is changing communication methods
   if(settingCommunication != COMM_I2C) {
@@ -376,12 +452,12 @@ void receiveEvent(int howMany) {
   while(Wire.available())
     recordToFrame(Wire.read());
 
-  byteReceived = true;
+  I2CbyteReceived = true;
 }
 
 //requestEvent gets called when data is requested from the display
 //Respond with the data of choice
-void requestEvent(void) {
+void I2CrequestEvent(void) {
 
   if(thingToSend == DATA_VISIBLE) {
     Wire.write(visibleFrame, DISPLAYSIZE); //Send the current frame back to the requester
@@ -398,11 +474,9 @@ void requestEvent(void) {
     tempFrame[2] = settingCommunication;
     Wire.write(tempFrame, 3);
   }
-  
-  byteRequested = true;
+
+  I2CbyteRequested = true;
 }
-
-
 //End I2C Specific functions
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -421,45 +495,30 @@ void checkEmergencyReset(void) {
 
   //Wait 2 seconds, blinking LEDs while we wait
   digitalWrite(SEGDP, SEG_ON); //Turn on the decimal point
-
   digitalWrite(DIG1, DIG_ON); //Turn on the digits
   digitalWrite(DIG2, DIG_ON); //Turn on the digits
   digitalWrite(DIG3, DIG_ON); //Turn on the digits
   digitalWrite(DIG4, DIG_ON); //Turn on the digits
-  
+
   for(byte i = 0 ; i < 40 ; i++) {
     delay(25);
-    digitalWrite(SEGDP, HIGH); //Turn ooff the decimal point
-
+    digitalWrite(SEGDP, SEG_OFF); //Turn off the decimal points
     if(digitalRead(0) == HIGH) return; //Check to see if RX is not low anymore
 
     delay(25);
-    STAT2_PORT ^= (1<<STAT2); //Blink the stat LEDs
-
+    digitalWrite(SEGDP, SEG_ON); //Turn on the decimal points
     if(digitalRead(0) == HIGH) return; //Check to see if RX is not low anymore
   }		
 
   //If we make it here, then RX pin stayed low the whole time
-  set_default_settings(); //Reset baud, escape characters, escape number, system mode
+  setDefaultSettings(); //Reset baud, brightness
 
-  //Try to setup the SD card so we can record these new settings
-  if (!card.init()) error("card.init"); // initialize the SD card
-  if (!volume.init(&card)) error("volume.init"); // initialize a FAT volume
-  if (!currentDirectory.openRoot(&volume)) error("openRoot"); // open the root directory
-
-  record_config_file(); //Record new config settings
-
-  pinMode(statled1, OUTPUT);
-  pinMode(statled2, OUTPUT);
-  digitalWrite(statled1, HIGH);
-  digitalWrite(statled2, HIGH);
-
-  //Now sit in forever loop indicating system is now at 9600bps
-  while(1)
-  {
+    //Now sit in forever loop indicating system is now at 9600bps
+  while(1) {
     delay(500);
-    STAT1_PORT ^= (1<<STAT1); //Blink the stat LEDs
-    STAT2_PORT ^= (1<<STAT2); //Blink the stat LEDs
+    digitalWrite(SEGDP, SEG_ON); //Turn on the decimal points
+    delay(500);
+    digitalWrite(SEGDP, SEG_OFF); //Turn off the decimal points
   }
 }
 
@@ -488,15 +547,29 @@ void readSystemSettings(void) {
   //Remember, this is only 7 bits. The 8th bit is the read/write flag
   //Also, the lest two bits are controlled by the solder jumpers on the board
   //Default is 0x3C
-  settingAddress = EEPROM.read(LOCATION_ADDRESS_SETTING);
-  if(settingAddress == 255) {
-    settingAddress = 0x3C; //By default, unit's address is 0x3C
-    EEPROM.write(LOCATION_ADDRESS_SETTING, settingAddress);
+  settingI2CAddress = EEPROM.read(LOCATION_I2CADDRESS_SETTING);
+  if(settingI2CAddress == 255) {
+    settingI2CAddress = 0x3C; //By default, unit's address is 0x3C
+    EEPROM.write(LOCATION_I2CADDRESS_SETTING, settingI2CAddress);
   }
 
 }
 
+//Resets all the system settings to safe values
+void setDefaultSettings(void) {
+  //Reset UART to 9600bps
+  EEPROM.write(LOCATION_BAUD_SETTING, BAUD_9600);
+
+  //Reset system brightness to the brightest level
+  EEPROM.write(LOCATION_BRIGHTNESS_SETTING, 0);
+
+  //Reset the I2C address to the default 0x3C
+  EEPROM.write(LOCATION_I2CADDRESS_SETTING, 0x3C);
+}
+
 //End internal system functions
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+
 
 

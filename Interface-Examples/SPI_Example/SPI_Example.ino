@@ -7,19 +7,21 @@
 
  OpenSegment is an open source seven segment display. 
 
- This is example code that shows how to control OpenSegment via serial or software (bit banged) serial.
+ This is example code that shows how to control OpenSegment via SPI.
  
  To get this code to work, attached an OpenSegment to an Arduino Uno using the following pins:
- Pin 7 on Uno (software serial RX) to TX on OpenSegment
- Pin 8 on Uno to RX on OpenSegment
+ Pin 10 on Uno (CS) to CS on OpenSegment
+ Pin 11 to MOSI
+ Pin 12 to MISO
+ Pin 13 to SCK
  VIN to PWR
  GND to GND
- 
+
 */
 
-#include <SoftwareSerial.h>
+#include <SPI.h>
 
-SoftwareSerial mySerial(7, 8); //RX pin, TX pin
+int csPin = 10; //You can use any IO pin but for this example we use 10
 
 #define DISPLAY_SIZE 4
 
@@ -27,14 +29,17 @@ char tempFrame[DISPLAY_SIZE]; //This assumes we are attached to a 4 digit displa
 
 char tempString[100]; //Used for the sprintf based debug statements
 
-int cycles = 998;
+int cycles = 1;
 
 void setup() {
-
+  pinMode(csPin, OUTPUT);
+  digitalWrite(csPin, HIGH); //By default, don't be selecting OpenSegment
+  
   Serial.begin(9600);
   Serial.println("OpenSegment Example Code");
-
-  mySerial.begin(9600); //Talk to the OpenSegment at 9600 bps
+  
+  SPI.begin(); //Start the SPI hardware
+  SPI.setClockDivider(SPI_CLOCK_DIV8); //Slow down the master a bit
 }
 
 void loop() {
@@ -42,44 +47,65 @@ void loop() {
   Serial.println(cycles++);
 
   Serial.println("Sending new data");
-  serialTestSend(cycles); //Sends a series of characters
+  spiTestSend(cycles); //Sends a series of characters
   delay(500);
 
-  serialRequestData(); //What is the display currently displaying?
-  delay(500);
+  //serialRequestData(); //What is the display currently displaying?
+  //delay(500);
 
-  serialSetBrightness(5);
-  delay(500);
+  //serialSetBrightness(5);
+  //delay(500);
 
-  serialRequestSettings(); //What are the current settings?
-  delay(500);
+  //serialRequestSettings(); //What are the current settings?
+  //delay(500);
 }
 
-//Sends a four digit value (cycles) to the display
-void serialTestSend(int tempCycles) {
-  mySerial.write('\n'); //This forces the cursor to return to the beginning of the display
-
-  int numToPrint[4];
+//Given a 4 digit number this function breaks up the number and loads it into
+//tempFrame for easier sending over various protocols
+//Does not print leading zeros
+//Correctly prints negative numbers
+void splitValue(int value) {
+  boolean negative = false;
   int spot;
+  
+  if(value < 0) {
+   value *= -1; //Get rid of minus sign for now
+   negative = true;
+  }
 
-  //Here we split up and load the array with the four decimal numbers
+  //Here we split up and load the array with the four numbers
   for(spot = 0 ; spot < 4 ; spot++) {
-    numToPrint[3 - spot] = tempCycles % 10; // = 2
-    tempCycles /= 10; // = 145
+    tempFrame[3 - spot] = (value % 10) + '0'; // = '2'
+    value /= 10; // = 145
   }
 
-  //Transmit either blanks or leading zeros to the display
-  //We run until spot == 3 so that we print a zero if tempCycles is 0.
-  for(spot = 0 ; numToPrint[spot] == 0 && spot < 3 ; spot++) { //Spin through the leading zeros
-    mySerial.print(' '); //Use this if you want no leading zeros
-    //mySerial.print('0'); //Use this if you want leading zeros
-  }
+  //Use this if you do not want to print leading zeros
+  //We run until spot == 3 so that we print a zero if number we want to print is just 0
+  for(spot = 0 ; tempFrame[spot] == '0' && spot < 3 ; spot++) //Spin through the leading zeros
+    tempFrame[spot] = ' ';
+  
+  //Attach a negative sign if this number is less than 0 and less than 4 digits
+  if(negative == true && spot > 0) tempFrame[spot - 1] = '-';
 
-  //Print the rest of the numbers
-  for( ; spot < 4 ; spot++)
-    mySerial.print(numToPrint[spot]);
+  //Return with tempFrame loaded up and ready to print
 }
 
+void spiTestSend(int toSend) {
+  splitValue(toSend); //Divy up this number into sendable ASCII bytes
+
+  digitalWrite(csPin, LOW); //Drive the CS pin low to select OpenSegment
+
+  //SPI.transfer('\n'); //This forces the cursor to return to the beginning of the display
+  
+  //Push the array
+  for(int x = 0 ; x < 4 ; x++) {
+    delayMicroseconds(1);
+    SPI.transfer(tempFrame[x]);
+  }
+  
+  digitalWrite(csPin, HIGH); //Release the CS pin to de-select OpenSegment
+}
+/*
 //Gets the current settings from OpenSegment
 void serialRequestData(void) {
 
@@ -139,5 +165,5 @@ void serialRequestSettings(void) {
   }
   Serial.println();
 }
-
+*/
 
