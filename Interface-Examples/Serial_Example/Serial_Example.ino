@@ -15,6 +15,11 @@
  VIN to PWR
  GND to GND
  
+ 
+ ToDo:
+ Add command to move to digit 1
+ Add baud rate example
+ Test baud rate/factory reset
 */
 
 #include <SoftwareSerial.h>
@@ -27,7 +32,7 @@ char tempFrame[DISPLAY_SIZE]; //This assumes we are attached to a 4 digit displa
 
 char tempString[100]; //Used for the sprintf based debug statements
 
-int cycles = -102;
+int cycles = 4;
 
 void setup() {
 
@@ -42,17 +47,18 @@ void loop() {
   Serial.println(cycles++);
 
   Serial.println("Sending new data");
+  
   serialTestSend(cycles); //Sends a series of characters
-  delay(500);
+  delay(1);
 
-  serialRequestData(); //What is the display currently displaying?
-  delay(500);
+  //serialRequestData(); //What is the display currently displaying?
+  //delay(500);
 
-  serialSetBrightness(5);
-  delay(500);
+  //serialSetBrightness(5);
+  //delay(500);
 
-  serialRequestSettings(); //What are the current settings?
-  delay(500);
+  //serialRequestSettings(); //What are the current settings?
+  //delay(500);
 }
 
 //Given a 4 digit number this function breaks up the number and loads it into
@@ -87,13 +93,16 @@ void splitValue(int value) {
 
 //Sends a four digit value (cycles) to the display
 void serialTestSend(int toSend) {
-  mySerial.write('\n'); //This forces the cursor to return to the beginning of the display
+  mySerial.write('v'); //This forces the cursor to return to the beginning of the display
   
-  splitValue(toSend); //Divy up this number into sendable ASCII bytes
-  
-  //Print the array
-  for(int x = 0 ; x < 4 ; x++)
-    mySerial.write(tempFrame[x]);
+  char tempString[10]; //Used for sprintf
+  sprintf(tempString, "%4d", cycles); //Convert deciSecond into a string that is right adjusted
+  //sprintf(tempString, "%d", deciSecond); //Convert deciSecond into a string that is left adjusted
+  //sprintf(tempString, "%04d", deciSecond); //Convert deciSecond into a string with leading zeros
+  //sprintf(tempString, "%4d", negativeDeciSecond); //Shows a negative sign infront of right adjusted number
+  //sprintf(tempString, "%4X", deciSecond); //Count in HEX, right adjusted
+  mySerial.print(tempString);
+
 }
 
 //Gets the current settings from OpenSegment

@@ -50,7 +50,8 @@ void setup() {
   
 }
 
-void loop() {
+void loop() 
+{
   Serial.print("Cycle: ");
   Serial.println(cycles++);
 
@@ -122,9 +123,7 @@ void i2cRequestData(void) {
 
 //Sends two pieces of data to OpenSegment and then the clear command
 //This should leave the display with a 6 in the first position
-void i2cTestSend(void) {
-  int tempCycles = cycles;
-
+void i2cSendValue(int tempCycles) {
   Wire.beginTransmission(DISPLAY_ADDRESS1); // transmit to device #1
   Wire.write(tempCycles / 1000);
   tempCycles %= 1000;

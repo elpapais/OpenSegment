@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.2">
+<eagle version="6.3">
 <drawing>
 <settings>
 <setting alwaysvectorfont="yes"/>
@@ -5622,6 +5622,11 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <text x="147.32" y="152.4" size="1.778" layer="97">Add reset breakout</text>
 <text x="147.32" y="149.86" size="1.778" layer="97">Fixed silk</text>
 <text x="147.32" y="147.32" size="1.778" layer="97">Swapped NPN/PNPs</text>
+<text x="27.94" y="137.16" size="1.778" layer="91">D22*</text>
+<text x="35.56" y="132.08" size="1.778" layer="91">D23*</text>
+<text x="190.5" y="180.34" size="1.778" layer="97">5 - 2.1(Yellow Vf) - 0.6(NPN+PNP Vs) = 2.3V</text>
+<text x="190.5" y="177.8" size="1.778" layer="97">2.3V = R * 0.06A (60mA peak)</text>
+<text x="187.96" y="182.88" size="1.778" layer="97">Changes on v1.1:</text>
 </plain>
 <instances>
 <instance part="FRAME1" gate="G$1" x="0" y="0"/>

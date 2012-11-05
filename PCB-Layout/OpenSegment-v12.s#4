@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.2">
+<eagle version="6.3">
 <drawing>
 <settings>
 <setting alwaysvectorfont="yes"/>
@@ -5622,6 +5622,21 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <text x="147.32" y="152.4" size="1.778" layer="97">Add reset breakout</text>
 <text x="147.32" y="149.86" size="1.778" layer="97">Fixed silk</text>
 <text x="147.32" y="147.32" size="1.778" layer="97">Swapped NPN/PNPs</text>
+<text x="27.94" y="137.16" size="1.778" layer="91">D22*</text>
+<text x="35.56" y="132.08" size="1.778" layer="91">D23*</text>
+<text x="190.5" y="180.34" size="1.778" layer="97">5 - 2.1(Yellow Vf) - 0.6(NPN+PNP Vs) = 2.3V</text>
+<text x="190.5" y="177.8" size="1.778" layer="97">2.3V = R * 0.06A (60mA peak)</text>
+<text x="187.96" y="182.88" size="1.778" layer="97">Changes on v1.2:</text>
+<text x="-10.16" y="60.96" size="1.778" layer="97">4.2V</text>
+<text x="-10.16" y="73.66" size="1.778" layer="97">5.0V</text>
+<text x="-10.16" y="48.26" size="1.778" layer="97">4.0V</text>
+<text x="-10.16" y="33.02" size="1.778" layer="97">1.59V</text>
+<text x="-10.16" y="17.78" size="1.778" layer="97">0V</text>
+<text x="-10.16" y="45.72" size="1.778" layer="97">3.92V</text>
+<text x="-27.94" y="76.2" size="1.778" layer="97">Measurements:</text>
+<text x="-17.78" y="53.34" size="1.778" layer="97">10mA</text>
+<text x="261.62" y="162.56" size="1.778" layer="97">5 to 12V Input</text>
+<text x="299.72" y="68.58" size="1.778" layer="97">5 to 12V Input</text>
 </plain>
 <instances>
 <instance part="FRAME1" gate="G$1" x="0" y="0"/>
@@ -5973,7 +5988,7 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <segment>
 <pinref part="R2" gate="G$1" pin="2"/>
 <wire x1="22.86" y1="50.8" x2="22.86" y2="43.18" width="0.1524" layer="91"/>
-<label x="22.86" y="48.26" size="1.778" layer="95" rot="MR270"/>
+<label x="22.86" y="43.18" size="1.778" layer="95" rot="R90"/>
 </segment>
 </net>
 <net name="RST" class="0">
