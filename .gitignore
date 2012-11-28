@@ -29,6 +29,15 @@ local.properties
 .buildpath
 
 
+#############
+## Eagle
+#############
+
+# Ignore the board and schematic backup files
+*.b#?
+*.s#?
+
+
 #################
 ## Visual Studio
 #################
@@ -115,7 +124,6 @@ Backup*/
 UpgradeLog*.XML
 
 
-
 ############
 ## Windows
 ############
@@ -161,7 +169,3 @@ pip-log.txt
 
 # Mac crap
 .DS_Store
-
-/main.txt
-/SFE-0012-DS-7segmentSerial-v41.pdf
-/ATA8041BB.doc
