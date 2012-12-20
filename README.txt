@@ -5,3 +5,7 @@ Larger 7-segment displays pull more power than a microcontroller is able to driv
 OpenSegment uses a standard FTDI connection and a bootloader compatible with the Arduino Pro Mini @ 8MHz setting under the Arduino IDE. 
 
 The board runs at 5V but doesn't use an external resonator so the maximum speed is 8MHz.
+
+You will find only the hardware layout in this repo. For the current firmware see the Serial7Segment repo.
+
+http://github.com/sparkfun/Serial7SegmentDisplay
