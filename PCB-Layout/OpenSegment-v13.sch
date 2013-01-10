@@ -9817,19 +9817,19 @@ We've spent an enormous amount of time creating and checking these footprints an
 <part name="JP4" library="SparkFun-Electromechanical" deviceset="STAND-OFF" device=""/>
 <part name="JP5" library="SparkFun-Electromechanical" deviceset="STAND-OFF" device=""/>
 <part name="JP6" library="SparkFun-Electromechanical" deviceset="STAND-OFF" device=""/>
-<part name="R2" library="SparkFun" deviceset="RESISTOR" device="0402-RES" value="27"/>
+<part name="R2" library="SparkFun" deviceset="RESISTOR" device="0402-RES" value="33/68"/>
 <part name="Q1" library="SparkFun-DiscreteSemi" deviceset="TRANSISTOR_PNP" device="SMD" value="PNP"/>
 <part name="SJ2" library="SparkFun-Passives" deviceset="SOLDERJUMPER" device="NO" value="Counter Ctl"/>
 <part name="GND6" library="SparkFun" deviceset="GND" device=""/>
 <part name="GND15" library="SparkFun" deviceset="GND" device=""/>
 <part name="JP2" library="SparkFun-Connectors" deviceset="M10" device="&quot;" value="Connections"/>
-<part name="R3" library="SparkFun" deviceset="RESISTOR" device="0402-RES" value="27"/>
-<part name="R4" library="SparkFun" deviceset="RESISTOR" device="0402-RES" value="27"/>
-<part name="R5" library="SparkFun" deviceset="RESISTOR" device="0402-RES" value="27"/>
-<part name="R6" library="SparkFun" deviceset="RESISTOR" device="0402-RES" value="27"/>
-<part name="R7" library="SparkFun" deviceset="RESISTOR" device="0402-RES" value="27"/>
-<part name="R8" library="SparkFun" deviceset="RESISTOR" device="0402-RES" value="27"/>
-<part name="R9" library="SparkFun" deviceset="RESISTOR" device="0402-RES" value="27"/>
+<part name="R3" library="SparkFun" deviceset="RESISTOR" device="0402-RES" value="33/68"/>
+<part name="R4" library="SparkFun" deviceset="RESISTOR" device="0402-RES" value="33/68"/>
+<part name="R5" library="SparkFun" deviceset="RESISTOR" device="0402-RES" value="33/68"/>
+<part name="R6" library="SparkFun" deviceset="RESISTOR" device="0402-RES" value="33/68"/>
+<part name="R7" library="SparkFun" deviceset="RESISTOR" device="0402-RES" value="33/68"/>
+<part name="R8" library="SparkFun" deviceset="RESISTOR" device="0402-RES" value="33/68"/>
+<part name="R9" library="SparkFun" deviceset="RESISTOR" device="0402-RES" value="33/68"/>
 <part name="GND16" library="SparkFun" deviceset="GND" device=""/>
 <part name="U$2" library="SparkFun" deviceset="LOGO-SFE" device="SK"/>
 <part name="Q9" library="SparkFun-DiscreteSemi" deviceset="TRANSISTOR_NPN" device="SOT23-3" value="MMBT2222"/>
@@ -10073,7 +10073,7 @@ We've spent an enormous amount of time creating and checking these footprints an
 <instance part="JP6" gate="G$1" x="220.98" y="17.78"/>
 <instance part="R2" gate="G$1" x="22.86" y="55.88" smashed="yes" rot="R270">
 <attribute name="NAME" x="24.3586" y="57.15" size="1.778" layer="95" rot="R270"/>
-<attribute name="VALUE" x="19.558" y="57.15" size="1.778" layer="96" rot="R270"/>
+<attribute name="VALUE" x="19.558" y="59.69" size="1.778" layer="96" rot="R270"/>
 </instance>
 <instance part="Q1" gate="G$1" x="20.32" y="68.58"/>
 <instance part="SJ2" gate="1" x="27.94" y="124.46" smashed="yes" rot="R270">
@@ -10087,31 +10087,31 @@ We've spent an enormous amount of time creating and checking these footprints an
 </instance>
 <instance part="R3" gate="G$1" x="45.72" y="55.88" smashed="yes" rot="R270">
 <attribute name="NAME" x="47.2186" y="57.15" size="1.778" layer="95" rot="R270"/>
-<attribute name="VALUE" x="42.418" y="57.15" size="1.778" layer="96" rot="R270"/>
+<attribute name="VALUE" x="42.418" y="59.69" size="1.778" layer="96" rot="R270"/>
 </instance>
 <instance part="R4" gate="G$1" x="68.58" y="55.88" smashed="yes" rot="R270">
 <attribute name="NAME" x="70.0786" y="57.15" size="1.778" layer="95" rot="R270"/>
-<attribute name="VALUE" x="65.278" y="57.15" size="1.778" layer="96" rot="R270"/>
+<attribute name="VALUE" x="65.278" y="59.69" size="1.778" layer="96" rot="R270"/>
 </instance>
 <instance part="R5" gate="G$1" x="91.44" y="55.88" smashed="yes" rot="R270">
 <attribute name="NAME" x="92.9386" y="57.15" size="1.778" layer="95" rot="R270"/>
-<attribute name="VALUE" x="88.138" y="57.15" size="1.778" layer="96" rot="R270"/>
+<attribute name="VALUE" x="88.138" y="59.69" size="1.778" layer="96" rot="R270"/>
 </instance>
 <instance part="R6" gate="G$1" x="114.3" y="55.88" smashed="yes" rot="R270">
 <attribute name="NAME" x="115.7986" y="57.15" size="1.778" layer="95" rot="R270"/>
-<attribute name="VALUE" x="110.998" y="57.15" size="1.778" layer="96" rot="R270"/>
+<attribute name="VALUE" x="110.998" y="59.69" size="1.778" layer="96" rot="R270"/>
 </instance>
 <instance part="R7" gate="G$1" x="137.16" y="55.88" smashed="yes" rot="R270">
 <attribute name="NAME" x="138.6586" y="57.15" size="1.778" layer="95" rot="R270"/>
-<attribute name="VALUE" x="133.858" y="57.15" size="1.778" layer="96" rot="R270"/>
+<attribute name="VALUE" x="133.858" y="59.69" size="1.778" layer="96" rot="R270"/>
 </instance>
 <instance part="R8" gate="G$1" x="160.02" y="55.88" smashed="yes" rot="R270">
 <attribute name="NAME" x="161.5186" y="57.15" size="1.778" layer="95" rot="R270"/>
-<attribute name="VALUE" x="156.718" y="57.15" size="1.778" layer="96" rot="R270"/>
+<attribute name="VALUE" x="156.718" y="59.69" size="1.778" layer="96" rot="R270"/>
 </instance>
 <instance part="R9" gate="G$1" x="182.88" y="55.88" smashed="yes" rot="R270">
 <attribute name="NAME" x="184.3786" y="57.15" size="1.778" layer="95" rot="R270"/>
-<attribute name="VALUE" x="179.578" y="57.15" size="1.778" layer="96" rot="R270"/>
+<attribute name="VALUE" x="179.578" y="59.69" size="1.778" layer="96" rot="R270"/>
 </instance>
 <instance part="GND16" gate="1" x="269.24" y="43.18"/>
 <instance part="U$2" gate="G$1" x="231.14" y="17.78"/>
