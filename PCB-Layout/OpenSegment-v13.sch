@@ -9928,7 +9928,7 @@ We've spent an enormous amount of time creating and checking these footprints an
 <wire x1="43.18" y1="109.22" x2="7.62" y2="109.22" width="0.1524" layer="97" style="shortdash"/>
 <text x="121.92" y="147.32" size="1.778" layer="91">A6</text>
 <text x="121.92" y="144.78" size="1.778" layer="91">A7</text>
-<wire x1="-33.02" y1="83.82" x2="137.16" y2="83.82" width="0.4064" layer="97" style="shortdash"/>
+<wire x1="-104.14" y1="83.82" x2="137.16" y2="83.82" width="0.4064" layer="97" style="shortdash"/>
 <wire x1="0" y1="40.64" x2="147.32" y2="40.64" width="0.4064" layer="97" style="shortdash"/>
 <wire x1="147.32" y1="40.64" x2="147.32" y2="35.56" width="0.4064" layer="97" style="shortdash"/>
 <wire x1="137.16" y1="185.42" x2="137.16" y2="137.16" width="0.4064" layer="97" style="shortdash"/>
@@ -9969,8 +9969,8 @@ We've spent an enormous amount of time creating and checking these footprints an
 <text x="284.48" y="53.34" size="1.778" layer="97">Increment</text>
 <text x="284.48" y="50.8" size="1.778" layer="97">Decrement</text>
 <text x="185.42" y="167.64" size="1.778" layer="97">Added mode jumpers</text>
-<wire x1="-33.02" y1="83.82" x2="-33.02" y2="0" width="0.4064" layer="97" style="shortdash"/>
-<wire x1="-33.02" y1="0" x2="0" y2="0" width="0.4064" layer="97" style="shortdash"/>
+<wire x1="-104.14" y1="83.82" x2="-104.14" y2="0" width="0.4064" layer="97" style="shortdash"/>
+<wire x1="-104.14" y1="0" x2="0" y2="0" width="0.4064" layer="97" style="shortdash"/>
 <wire x1="-2.54" y1="60.96" x2="0" y2="60.96" width="0.4064" layer="97" style="shortdash"/>
 <wire x1="-2.54" y1="73.66" x2="0" y2="73.66" width="0.4064" layer="97" style="shortdash"/>
 <wire x1="0" y1="73.66" x2="0" y2="76.2" width="0.4064" layer="97" style="shortdash"/>
@@ -9995,6 +9995,43 @@ We've spent an enormous amount of time creating and checking these footprints an
 <text x="185.42" y="147.32" size="1.778" layer="97">Add silk to top side A6/7</text>
 <text x="185.42" y="149.86" size="1.778" layer="97">Move in 10uF cap</text>
 <text x="182.88" y="154.94" size="1.778" layer="97">Changes on v1.3:</text>
+<text x="-55.88" y="86.36" size="1.778" layer="97">Measurements:</text>
+<text x="-50.8" y="60.96" size="1.778" layer="97">4.78V</text>
+<text x="-50.8" y="48.26" size="1.778" layer="97">3.31V</text>
+<text x="-50.8" y="33.02" size="1.778" layer="97">0.8V</text>
+<text x="-48.26" y="73.66" size="1.778" layer="97">5V</text>
+<text x="-48.26" y="17.78" size="1.778" layer="97">0V</text>
+<text x="-50.8" y="78.74" size="1.778" layer="97">Blu/Wht</text>
+<text x="-91.44" y="78.74" size="1.778" layer="97">Red/Yel</text>
+<text x="-86.36" y="73.66" size="1.778" layer="97">5V</text>
+<text x="-88.9" y="60.96" size="1.778" layer="97">4.68V</text>
+<text x="-88.9" y="48.26" size="1.778" layer="97">2.08V</text>
+<text x="-88.9" y="33.02" size="1.778" layer="97">0.55V</text>
+<text x="-86.36" y="17.78" size="1.778" layer="97">0V</text>
+<text x="-55.118" y="50.546" size="1.778" layer="97" rot="R90">50Ohm</text>
+<text x="-92.964" y="52.578" size="1.778" layer="97" rot="R90">50Ohm</text>
+<text x="-60.96" y="10.16" size="1.778" layer="97">28(52mA)/42(35mA)</text>
+<text x="-99.06" y="10.16" size="1.778" layer="97">49(52.4mA)/74(35mA)</text>
+<text x="-91.44" y="12.7" size="1.778" layer="97">Min/Max</text>
+<text x="-101.6" y="7.62" size="1.778" layer="97">Red/Yellow/Green: 68</text>
+<text x="-63.5" y="7.62" size="1.778" layer="97">Blue/White: 33 or 49</text>
+<text x="-55.88" y="12.7" size="1.778" layer="97">Min/Max</text>
+<wire x1="-43.18" y1="33.02" x2="-40.64" y2="33.02" width="0.4064" layer="97" style="shortdash"/>
+<wire x1="-81.28" y1="33.02" x2="-78.74" y2="33.02" width="0.4064" layer="97" style="shortdash"/>
+<wire x1="-43.18" y1="48.26" x2="-40.64" y2="48.26" width="0.4064" layer="97" style="shortdash"/>
+<wire x1="-43.18" y1="60.96" x2="-40.64" y2="60.96" width="0.4064" layer="97" style="shortdash"/>
+<wire x1="-43.18" y1="73.66" x2="-40.64" y2="73.66" width="0.4064" layer="97" style="shortdash"/>
+<wire x1="-43.18" y1="17.78" x2="-40.64" y2="17.78" width="0.4064" layer="97" style="shortdash"/>
+<wire x1="-81.28" y1="48.26" x2="-78.74" y2="48.26" width="0.4064" layer="97" style="shortdash"/>
+<wire x1="-81.28" y1="60.96" x2="-78.74" y2="60.96" width="0.4064" layer="97" style="shortdash"/>
+<wire x1="-81.28" y1="73.66" x2="-78.74" y2="73.66" width="0.4064" layer="97" style="shortdash"/>
+<wire x1="-81.28" y1="17.78" x2="-78.74" y2="17.78" width="0.4064" layer="97" style="shortdash"/>
+<text x="-89.408" y="55.118" size="1.778" layer="97">52.4mA(4 segs)</text>
+<text x="-52.324" y="54.356" size="1.778" layer="97">29.5mA(4 segs)</text>
+<text x="99.06" y="33.02" size="1.778" layer="97">NPN w/ 470 Bias</text>
+<text x="99.06" y="30.48" size="1.778" layer="97">DDTD142TC-7-F</text>
+<text x="193.04" y="76.2" size="1.778" layer="97">PNP w/ 470 Bias</text>
+<text x="193.04" y="73.66" size="1.778" layer="97">DDTB142TC-7-F</text>
 </plain>
 <instances>
 <instance part="FRAME1" gate="G$1" x="0" y="0"/>
