@@ -218,6 +218,53 @@
 <text x="12.446" y="5.842" size="1.016" layer="21" font="vector" ratio="15">GND</text>
 <text x="12.446" y="-6.858" size="1.016" layer="21" font="vector" ratio="15">SDA</text>
 <text x="12.446" y="-9.398" size="1.016" layer="21" font="vector" ratio="15">SCL</text>
+<text x="-1.27" y="-24.638" size="1.016" layer="47" font="vector" ratio="15">1.40</text>
+<wire x1="17.78" y1="-22.86" x2="17.78" y2="-24.13" width="0.127" layer="47"/>
+<text x="-14.859" y="20.828" size="1.016" layer="47" font="vector" ratio="15">0.15</text>
+<wire x1="-17.78" y1="-22.86" x2="-17.78" y2="-24.13" width="0.127" layer="47"/>
+<wire x1="-11.43" y1="17.78" x2="-11.43" y2="20.32" width="0.127" layer="47"/>
+<wire x1="-11.43" y1="20.32" x2="-11.43" y2="21.59" width="0.127" layer="47"/>
+<wire x1="-15.24" y1="16.51" x2="-15.24" y2="20.32" width="0.127" layer="47"/>
+<wire x1="-15.24" y1="20.32" x2="-15.24" y2="25.4" width="0.127" layer="47"/>
+<wire x1="-15.24" y1="25.4" x2="-15.24" y2="26.67" width="0.127" layer="47"/>
+<text x="-0.635" y="26.162" size="1.016" layer="47" font="vector" ratio="15">1.20</text>
+<circle x="0" y="25.4" radius="0.016003125" width="0" layer="47"/>
+<circle x="0" y="-22.86" radius="0.016003125" width="0" layer="47"/>
+<wire x1="15.24" y1="16.51" x2="15.24" y2="25.4" width="0.127" layer="47"/>
+<wire x1="15.24" y1="25.4" x2="15.24" y2="26.67" width="0.127" layer="47"/>
+<wire x1="-15.24" y1="25.4" x2="15.24" y2="25.4" width="0.127" layer="47"/>
+<wire x1="-17.78" y1="-22.86" x2="17.78" y2="-22.86" width="0.127" layer="47"/>
+<text x="24.13" y="13.97" size="1.016" layer="47" font="vector" ratio="15" rot="R90">1.50</text>
+<wire x1="21.59" y1="-19.05" x2="22.86" y2="-19.05" width="0.127" layer="47"/>
+<wire x1="21.59" y1="19.05" x2="22.86" y2="19.05" width="0.127" layer="47"/>
+<wire x1="21.59" y1="-19.05" x2="21.59" y2="19.05" width="0.127" layer="47"/>
+<wire x1="20.32" y1="19.05" x2="21.59" y2="19.05" width="0.127" layer="47"/>
+<wire x1="20.32" y1="-19.05" x2="21.59" y2="-19.05" width="0.127" layer="47"/>
+<wire x1="-15.24" y1="20.32" x2="-11.43" y2="20.32" width="0.127" layer="47"/>
+<wire x1="-15.24" y1="-16.51" x2="-20.32" y2="-16.51" width="0.127" layer="47"/>
+<wire x1="-20.32" y1="-16.51" x2="-21.59" y2="-16.51" width="0.127" layer="47"/>
+<text x="-22.86" y="13.97" size="1.016" layer="47" font="vector" ratio="15" rot="R90">1.30</text>
+<circle x="-20.32" y="-1.27" radius="0.016003125" width="0" layer="47"/>
+<wire x1="-15.24" y1="16.51" x2="-20.32" y2="16.51" width="0.127" layer="47"/>
+<wire x1="-20.32" y1="16.51" x2="-21.59" y2="16.51" width="0.127" layer="47"/>
+<wire x1="-20.32" y1="-16.51" x2="-20.32" y2="16.51" width="0.127" layer="47"/>
+<text x="20.32" y="-21.59" size="1.016" layer="47" font="vector" ratio="15">All dimensions are in inches.</text>
+<wire x1="-17.78" y1="-21.59" x2="-17.78" y2="-22.86" width="0.127" layer="47"/>
+<wire x1="17.78" y1="-21.59" x2="17.78" y2="-22.86" width="0.127" layer="47"/>
+<text x="-29.972" y="-18.542" size="1.016" layer="47" font="vector" ratio="15">0.7173</text>
+<wire x1="-17.78" y1="-19.05" x2="-17.78" y2="-20.32" width="0.127" layer="47"/>
+<wire x1="-36" y1="-19.05" x2="-36" y2="-20.32" width="0.127" layer="47"/>
+<circle x="-41.91" y="-15.24" radius="0.016003125" width="0" layer="47"/>
+<wire x1="-36" y1="-19.05" x2="-17.78" y2="-19.05" width="0.127" layer="47"/>
+<wire x1="-36" y1="-17.78" x2="-36" y2="-19.05" width="0.127" layer="47"/>
+<wire x1="-17.78" y1="-17.78" x2="-17.78" y2="-19.05" width="0.127" layer="47"/>
+<text x="-40.132" y="-2.286" size="1.016" layer="47" font="vector" ratio="15" rot="R90">1.0236</text>
+<wire x1="-39.64" y1="13" x2="-38.37" y2="13" width="0.127" layer="47"/>
+<wire x1="-39.64" y1="-13" x2="-38.37" y2="-13" width="0.127" layer="47"/>
+<circle x="-40.64" y="5.08" radius="0.016003125" width="0" layer="47"/>
+<wire x1="-39.64" y1="-13" x2="-39.64" y2="13" width="0.127" layer="47"/>
+<wire x1="-40.91" y1="-13" x2="-39.64" y2="-13" width="0.127" layer="47"/>
+<wire x1="-40.91" y1="13" x2="-39.64" y2="13" width="0.127" layer="47"/>
 </plain>
 <libraries>
 <library name="SparkFun">
